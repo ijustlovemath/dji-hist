@@ -3,6 +3,7 @@ import dateutil.parser
 import numpy as np
 import matplotlib.pyplot as plt
 
+# DJI.csv from Yahoo Finance
 with open('DJI.csv', 'r') as f:
     lines = f.readlines()
     lines = [l.rstrip('\r\n') for l in lines]
@@ -23,13 +24,18 @@ def to_series(data):
     return s
 
 def convert_type(series, key, callback):
-    series[key] = list(map(callback, series[key]))
+    series[key] = np.vectorize(callback)(series[key])
 
-def percent_change(series, key):
-    return np.diff(series[key]) / np.array(series[key][:-1 or None])
+def percent_change(raw_data):
+    return np.diff(raw_data) / np.array(raw_data[:-1 or None])
 
-def plot_histogram(series, key, binwidth=0.001):
-    dater = percent_change(series, key)
+def plot_histogram(raw_data, raw_times, threshold=0.03, binwidth=0.001):
+    dater = percent_change(raw_data)
+    times = raw_times[np.abs(dater) > threshold]
+    dater = dater[np.abs(dater) > threshold]
+    times = [t for _, t in sorted(zip(dater, times))]
+    for t, d in zip(times, sorted(dater)):
+        print(f"{100*d:.1f}% change on {t}")
     plt.hist(dater, bins=np.arange(np.min(dater), np.max(dater)+binwidth, binwidth))
     plt.show()
 
@@ -40,4 +46,4 @@ series = to_series(data)
 convert_type(series, 'Open', float)
 convert_type(series, 'Date', dateutil.parser.parse)
 
-plot_histogram(series, 'Open')
+plot_histogram(series['Open'], series['Date'][1:])
