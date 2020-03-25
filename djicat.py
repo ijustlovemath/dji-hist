@@ -33,9 +33,14 @@ def plot_histogram(raw_data, raw_times, threshold=0.03, binwidth=0.001):
     dater = percent_change(raw_data)
     times = raw_times[np.abs(dater) > threshold]
     dater = dater[np.abs(dater) > threshold]
+    print("sorted by times")
+    for t, d in zip(times, dater):
+        print(f"{100*d:.1f}% change on {t}")
     times = [t for _, t in sorted(zip(dater, times))]
+    print("\nsorted by percentage")
     for t, d in zip(times, sorted(dater)):
         print(f"{100*d:.1f}% change on {t}")
+
     plt.hist(dater, bins=np.arange(np.min(dater), np.max(dater)+binwidth, binwidth))
     plt.show()
 
